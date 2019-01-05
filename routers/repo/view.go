@@ -27,6 +27,12 @@ import (
 	"code.gitea.io/gitea/modules/templates"
 
 	"github.com/Unknwon/paginater"
+
+	// -- cad start --
+	"os"
+	"os/exec"
+	"bufio"
+	// - cad end --
 )
 
 const (
@@ -167,6 +173,70 @@ func renderFile(ctx *context.Context, entry *git.TreeEntry, treeLink, rawLink st
 
 	isTextFile := base.IsTextFile(buf)
 	ctx.Data["IsTextFile"] = isTextFile
+
+	// ---- cad start ----
+	isCadFile, isCadFileSourceDisplayable := base.IsCadFile(blob.Name(), buf)
+	ctx.Data["IsCadFile"] = isCadFile
+	ctx.Data["IsCadFileSourceDisplayable"] = isCadFileSourceDisplayable
+
+	if isCadFile {
+
+		fmt.Println("Calling Python CAD conversion procedure")
+
+		// -- conversion script parameters
+		python_path := "python"
+
+		gitea_path := ""
+
+		gitea_path = os.Getenv("GOPATH") + "/src/code.gitea.io/gitea"
+		conversion_script_path := gitea_path + "/routers/repo/cad2web_main.py"
+		cad_file_raw_url := rawLink + "/" + ctx.Repo.TreePath
+		converted_files_folder := gitea_path + "/public/converted_files"
+
+		// -- Conversion script definition
+		cmd := exec.Command(python_path, conversion_script_path, cad_file_raw_url, converted_files_folder)
+
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+
+		// -- Run the conversion script
+		status := cmd.Run()
+
+		// -- Retrieve the dat file and build the list
+		descriptor_filename := converted_files_folder + "/" + path.Base(cad_file_raw_url) + ".dat"
+		file, err := os.Open(descriptor_filename)
+		if err != nil {
+			ctx.ServerError("DatFile", err)
+			return
+		}
+		defer file.Close()
+
+		var lines []string
+		line_nb := 0
+		max_dim := 1000.0
+		scanner := bufio.NewScanner(file)
+
+		for scanner.Scan() {
+			if line_nb == 0 {
+				max_dim, err = strconv.ParseFloat(scanner.Text(), 32)
+				if err != nil {
+					max_dim = 1000.0
+				}
+			} else {
+				lines = append(lines, scanner.Text())
+			}
+			line_nb = line_nb + 1
+		}
+
+		ctx.Data["MaxDim"] = 2.0 * max_dim
+		ctx.Data["ConvertedFiles"] = lines
+
+		fmt.Println("Status : ")
+		fmt.Println(status)
+		fmt.Println("Calling Python CAD conversion procedure... Done")
+	}
+
+	// ---- cad end ----
 
 	//Check for LFS meta file
 	if isTextFile && setting.LFS.StartServer {
