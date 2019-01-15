@@ -6,6 +6,16 @@
 	<meta http-equiv="x-ua-compatible" content="ie=edge">
 	<title>{{if .Title}}{{.Title}} - {{end}}{{AppName}}</title>
 	<link rel="manifest" href="{{AppSubUrl}}/manifest.json">
+
+	<!-- Global site tag (gtag.js) - Google Analytics -->
+	<script async src="https://www.googletagmanager.com/gtag/js?id=UA-132483113-1"></script>
+	<script>
+	 	window.dataLayer = window.dataLayer || [];
+		function gtag(){dataLayer.push(arguments);}
+		gtag('js', new Date());
+
+		gtag('config', 'UA-132483113-1');
+	</script>
 	
 	<script>
 		if ('serviceWorker' in navigator) {
