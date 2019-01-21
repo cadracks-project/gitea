@@ -174,6 +174,7 @@ func RegisterRoutes(m *macaron.Macaron) {
 		return ""
 	})
 	m.Get("/", routers.Home)
+	m.Get("/partners", routers.Partners)
 	m.Group("/explore", func() {
 		m.Get("", func(ctx *context.Context) {
 			ctx.Redirect(setting.AppSubURL + "/explore/repos")
