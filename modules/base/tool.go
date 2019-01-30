@@ -587,9 +587,10 @@ func IsCadFile(filename string, content []byte) (bool, bool){
 	// first bool if whether it is a CAD file or not
 	// second bool is whether it is a scripted CAD file where the script should be displayed
 	extension := filepath.Ext(filename)
+
 	if isPythonExtension(extension) == true{
 		// check if part or assembly is in the file
-		if strings.Contains(string(content), "part") || strings.Contains(string(content), "assembly"){
+		if (strings.Contains(string(content), "__shape__") || strings.Contains(string(content), "__shapes__") || strings.Contains(string(content), "__part__") || strings.Contains(string(content), "__assembly__")){
 			return true, true
 		} else {
 			return false, false

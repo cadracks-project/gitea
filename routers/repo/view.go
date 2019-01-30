@@ -167,7 +167,9 @@ func renderFile(ctx *context.Context, entry *git.TreeEntry, treeLink, rawLink st
 	ctx.Data["HighlightClass"] = highlight.FileNameToHighlightClass(blob.Name())
 	ctx.Data["RawFileLink"] = rawLink + "/" + ctx.Repo.TreePath
 
-	buf := make([]byte, 1024)
+	// buf := make([]byte, 1024)
+	// If the buffer is too small, the file may not be fully loaded and special variable names might go unnoticed
+	buf := make([]byte, 100000)
 	n, _ := dataRc.Read(buf)
 	buf = buf[:n]
 
