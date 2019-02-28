@@ -17,7 +17,8 @@ from os.path import basename, isdir
 
 from aocutils.analyze.bounds import BoundingBox
 
-from osvcad.nodes import Part
+# from osvcad.nodes import Part
+from cadracks_core.factories import anchorable_part_from_stepzip
 
 from cad2web_manage_files import _conversion_filename, _descriptor_filename, \
     _write_descriptor
@@ -52,8 +53,13 @@ def convert_stepzip_file(stepzip_filename, target_folder, remove_original=True):
     """
     if not isdir(target_folder):
         mkdir(target_folder)
-    part = Part.from_stepzip(stepzip_filename)
-    shape = part.node_shape.shape
+
+    # part = Part.from_stepzip(stepzip_filename)
+    # shape = part.node_shape.shape
+
+    part = anchorable_part_from_stepzip(stepzip_filename)
+    shape = part.shape
+
     converted_filename = _conversion_filename(stepzip_filename,
                                               target_folder,
                                               0)

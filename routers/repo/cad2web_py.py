@@ -12,14 +12,12 @@ from __future__ import print_function, absolute_import
 
 import imp
 import logging
-from os import remove, getcwd, chdir, system, mkdir
-from os.path import splitext, basename, isdir
-import sys
-
+from os import remove, system, mkdir
+from os.path import splitext, basename, isdir, join
 
 from aocutils.analyze.bounds import BoundingBox
 
-from osvcad.nodes import Part
+# from osvcad.nodes import Part
 
 from cad2web_manage_files import _conversion_filename, _descriptor_filename, \
     _write_descriptor
@@ -130,57 +128,57 @@ def convert_py_file_shapes(py_filename, target_folder, remove_original=True):
         remove(py_filename)
 
 
-def convert_py_file_part(py_filename, target_folder, remove_original=True):
-    r"""Convert an OsvCad Python file that contains a part for web display
-
-    The Python file contains the definition of a part.
-
-    Parameters
-    ----------
-    py_filename : str
-        Full path to the Python file
-    target_folder : str
-        Full path to the target folder for the conversion
-    remove_original : bool
-        Should the input file be deleted after conversion?
-        It should be deleted on a web platform to save disk space, but, for
-        testing, it might be useful not to delete it.
-
-    Returns
-    -------
-    Nothing, it is a procedure
-
-    Raises
-    ------
-    ValueError if not a part definition
-
-    """
-    if not isdir(target_folder):
-        mkdir(target_folder)
-    part = Part.from_py_script(py_filename)
-    shape = part.node_shape.shape
-    converted_filename = _conversion_filename(py_filename,
-                                              target_folder,
-                                              0)
-    converted_basenames = [basename(converted_filename)]
-    _convert_shape(shape, converted_filename)
-
-    _write_descriptor(BoundingBox(shape).max_dimension,
-                      converted_basenames,
-                      _descriptor_filename(target_folder,
-                                           basename(py_filename)))
-    if remove_original is True:
-        remove(py_filename)
+# def convert_py_file_part(py_filename, target_folder, remove_original=True):
+#     r"""Convert an OsvCad Python file that contains a part for web display
+#
+#     The Python file contains the definition of a part.
+#
+#     Parameters
+#     ----------
+#     py_filename : str
+#         Full path to the Python file
+#     target_folder : str
+#         Full path to the target folder for the conversion
+#     remove_original : bool
+#         Should the input file be deleted after conversion?
+#         It should be deleted on a web platform to save disk space, but, for
+#         testing, it might be useful not to delete it.
+#
+#     Returns
+#     -------
+#     Nothing, it is a procedure
+#
+#     Raises
+#     ------
+#     ValueError if not a part definition
+#
+#     """
+#     if not isdir(target_folder):
+#         mkdir(target_folder)
+#     part = Part.from_py_script(py_filename)
+#     shape = part.node_shape.shape
+#     converted_filename = _conversion_filename(py_filename,
+#                                               target_folder,
+#                                               0)
+#     converted_basenames = [basename(converted_filename)]
+#     _convert_shape(shape, converted_filename)
+#
+#     _write_descriptor(BoundingBox(shape).max_dimension,
+#                       converted_basenames,
+#                       _descriptor_filename(target_folder,
+#                                            basename(py_filename)))
+#     if remove_original is True:
+#         remove(py_filename)
 
 
 def convert_py_file_assembly(py_filename,
                              target_folder,
                              clone_url,
                              branch,
+                             project,
+                             path_from_project_root,
                              remove_original=True):
-    r"""
-
-    **** WORK IN PROGRESS ****
+    r"""Convert a Python script that defines an assembly
 
     Parameters
     ----------
@@ -196,11 +194,17 @@ def convert_py_file_assembly(py_filename,
     if not isdir(target_folder):
         mkdir(target_folder)
 
+    py_filename_to_load = join(target_folder, project, path_from_project_root)
+
+    logger.info("py_filename_to_load = %s" % py_filename_to_load)
+
     logger.info("Dealing with a Python file that is supposed to "
                 "define an assembly")
-    # -1- change working dir to converted_files
-    working_dir_initial = getcwd()
-    chdir(target_folder)
+    logger.info("py_filename = %s" % py_filename)
+    logger.info("target_folder = %s" % target_folder)
+    logger.info("clone_url = %s" % clone_url)
+    logger.info("branch = %s" % branch)
+
     # 0 - Git clone
     logger.info("Git cloning %s into %s" % (clone_url, target_folder))
 
@@ -213,30 +217,18 @@ def convert_py_file_assembly(py_filename,
     # 1 - Git checkout the right branch/commit
     logger.info("Git checkout %s of %s" % (branch, project))
     system("cd %s/%s && git checkout %s" % (target_folder,
-                                               project,
-                                               branch))
+                                            project,
+                                            branch))
 
-    # 2 - Alter sys.path
-    logger.info("Git checkout %s of %s" % (branch, project))
-    sys_path_initial = sys.path
-    path_extra = "%s/%s" % (target_folder, project)
-    logger.info("Appending sys.path with %s" % path_extra)
-    sys.path.append(path_extra)
-
-    # Useless : adding converted_files to sys.path
-    # logger.info("Appending sys.path with %s" % dirname(py_filename))
-    # sys.path.append(dirname(py_filename))
-
-    # 3 - Run osvcad functions
+    # 3 - Run functions
     converted_basenames = []
-    # TODO : THE PROBLEM IS THAT WE ARE IMPORTING THE FILE OUTSIDE OF THE
-    # CONTEXT OF ITS PROJECT
-    module_ = imp.load_source(splitext(basename(py_filename))[0],
-                              py_filename)
-    assembly = getattr(module_, "assembly")
 
-    for i, node in enumerate(assembly.nodes()):
-        shape = node.node_shape.shape
+    module_ = imp.load_source(splitext(basename(py_filename))[0],
+                              py_filename_to_load)
+    assembly = getattr(module_, "__assembly__")
+
+    for i, part in enumerate(assembly._parts):
+        shape = part.transformed_shape
         converted_filename = _conversion_filename(py_filename,
                                                   target_folder,
                                                   i)
@@ -249,13 +241,66 @@ def convert_py_file_assembly(py_filename,
                                            basename(py_filename)))
     remove(py_filename)
 
-    # 4 - Put sys.path back to where it was
-    sys.path = sys_path_initial
-    # 5 - Set back the working dir
-    chdir(working_dir_initial)
-    # 6 - Cleanup
-    if remove_original is True:
-        pass
+    # TODO : remove folder created by git clone or the next clone will fail
+
+
+def convert_py_file_assemblies(py_filename,
+                               target_folder,
+                               clone_url,
+                               branch,
+                               project,
+                               path_from_project_root,
+                               remove_original=True):
+    if not isdir(target_folder):
+        mkdir(target_folder)
+
+    py_filename_to_load = join(target_folder, project, path_from_project_root)
+
+    logger.info("py_filename_to_load = %s" % py_filename_to_load)
+
+    logger.info("Dealing with a Python file that is supposed to "
+                "define an assembly")
+    logger.info("py_filename = %s" % py_filename)
+    logger.info("target_folder = %s" % target_folder)
+    logger.info("clone_url = %s" % clone_url)
+    logger.info("branch = %s" % branch)
+
+    # 0 - Git clone
+    logger.info("Git cloning %s into %s" % (clone_url, target_folder))
+
+    # from subprocess import call
+    # call(["cd", target_folder, "&&", "git", "clone", clone_url])
+    system("cd %s && git clone %s" % (target_folder, clone_url))
+
+    project = clone_url.split("/")[-1]
+
+    # 1 - Git checkout the right branch/commit
+    logger.info("Git checkout %s of %s" % (branch, project))
+    system("cd %s/%s && git checkout %s" % (target_folder,
+                                            project,
+                                            branch))
+
+    # 3 - Run functions
+    converted_basenames = []
+
+    module_ = imp.load_source(splitext(basename(py_filename))[0],
+                              py_filename_to_load)
+    assemblies = getattr(module_, "__assemblies__")
+
+    for j, assembly in enumerate(assemblies):
+        for i, part in enumerate(assembly._parts):
+            shape = part.transformed_shape
+            converted_filename = _conversion_filename(py_filename,
+                                                      target_folder,
+                                                      10*j + i)
+            converted_basenames.append(basename(converted_filename))
+            _convert_shape(shape, converted_filename)
+    # TODO : max_dim
+    _write_descriptor(1000,
+                      converted_basenames,
+                      _descriptor_filename(target_folder,
+                                           basename(py_filename)))
+    remove(py_filename)
 
     # TODO : remove folder created by git clone or the next clone will fail
 
@@ -264,6 +309,8 @@ def convert_py_file(py_filename,
                     target_folder,
                     clone_url,
                     branch,
+                    project,
+                    path_from_project_root,
                     remove_original=True):
     r"""Convert an OsvCad Python file for web display
 
@@ -288,8 +335,9 @@ def convert_py_file(py_filename,
     # - an Assembly definition Python script using the __assembly__ module level variable
     found_shape = False
     found_shapes = False
-    found_part = False
+    # found_part = False
     found_assembly = False
+    found_assemblies = False
 
     with open(py_filename) as f:
 
@@ -298,38 +346,56 @@ def convert_py_file(py_filename,
                 found_shape = True
             if "__shapes__" in line:
                 found_shapes = True
-            if "__part__" in line:
-                found_part = True
+            # if "__part__" in line:
+            #     found_part = True
             if "__assembly__" in line:
                 found_assembly = True
+            if "__assemblies__" in line:
+                found_assemblies = True
 
     # A geometry/part/assembly Python script can only define one thing at a time
-    # e.g. it should no be possible to call for the visualization of a Part and of an Assembly in the same script
-    l = [found_shape, found_shapes, found_part, found_assembly]
-    if len(list(filter(lambda x: x is True, l))) > 1:
-        raise RuntimeError("The Python script defines too many things")
+    # e.g. it should no be possible to call for the visualization of a Part
+    # and of an Assembly in the same script
+
+    # l = [found_shape, found_shapes, found_part, found_assembly]
+    l = [found_shape, found_shapes, found_assembly, found_assemblies]
+
+    # if len(list(filter(lambda x: x is True, l))) > 1:
+    #     raise RuntimeError("The Python script defines too many things")
     if len(list(filter(lambda x: x is True, l))) == 0:
         raise RuntimeError("The Python script defines nothing")
 
     # Call the right procedure depending on what is defined in the Python script
-    if found_shape is True:
-        convert_py_file_shape(py_filename,
-                              target_folder,
-                              remove_original=remove_original)
 
-    if found_shapes is True:
-        convert_py_file_shapes(py_filename,
-                               target_folder,
-                               remove_original=remove_original)
+    # if found_part is True:
+    #     convert_py_file_part(py_filename,
+    #                          target_folder,
+    #                          remove_original=remove_original)
 
-    if found_part is True:
-        convert_py_file_part(py_filename,
-                             target_folder,
-                             remove_original=remove_original)
-
-    if found_assembly is True:
-        convert_py_file_assembly(py_filename,
-                                 target_folder,
-                                 clone_url,
-                                 branch,
-                                 remove_original=remove_original)
+    if found_assemblies is True:
+        convert_py_file_assemblies(py_filename,
+                                   target_folder,
+                                   clone_url,
+                                   branch,
+                                   project,
+                                   path_from_project_root,
+                                   remove_original=remove_original)
+    else:
+        if found_assembly is True:
+            convert_py_file_assembly(py_filename,
+                                     target_folder,
+                                     clone_url,
+                                     branch,
+                                     project,
+                                     path_from_project_root,
+                                     remove_original=remove_original)
+        else:
+            if found_shapes is True:
+                convert_py_file_shapes(py_filename,
+                                       target_folder,
+                                       remove_original=remove_original)
+            else:
+                if found_shape is True:
+                    convert_py_file_shape(py_filename,
+                                          target_folder,
+                                          remove_original=remove_original)

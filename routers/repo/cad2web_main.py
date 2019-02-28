@@ -57,12 +57,14 @@ def main():
     branch = cad_file_raw_url.split("/")[5]
     user = cad_file_raw_url.split("/")[1]
     project = cad_file_raw_url.split("/")[2]
+    path_from_project_root = "/".join(cad_file_raw_url.split("/")[6:])
 
     clone_url = "%s/%s/%s" % (GITEA_URL, user, project)
 
     logger.info("Branch is %s" % branch)
     logger.info("User is %s" % user)
     logger.info("Project is %s" % project)
+    logger.info("Path from project root is %s" % path_from_project_root)
 
     cad_file_raw_url_full = "%s%s" % (GITEA_URL, cad_file_raw_url)
 
@@ -95,7 +97,9 @@ def main():
             convert_py_file(cad_file_filename,
                             converted_files_folder,
                             clone_url,
-                            branch)
+                            branch,
+                            project,
+                            path_from_project_root)
         t1 = time.time()
         logger.info("The whole Python call took %f" % (t1 - t0))
         sys.exit(0)

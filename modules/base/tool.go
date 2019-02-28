@@ -590,7 +590,7 @@ func IsCadFile(filename string, content []byte) (bool, bool){
 
 	if isPythonExtension(extension) == true{
 		// check if part or assembly is in the file
-		if (strings.Contains(string(content), "__shape__") || strings.Contains(string(content), "__shapes__") || strings.Contains(string(content), "__part__") || strings.Contains(string(content), "__assembly__")){
+		if (strings.Contains(string(content), "__shape__") || strings.Contains(string(content), "__shapes__") || strings.Contains(string(content), "__assemblies__") || strings.Contains(string(content), "__assembly__")){
 			return true, true
 		} else {
 			return false, false
