@@ -27,7 +27,8 @@ in the Go code.
 
 from __future__ import print_function, absolute_import
 
-import imp
+# import imp
+import importlib.util
 import logging
 from os import remove, system, mkdir
 from os.path import splitext, basename, isdir, join
@@ -66,7 +67,11 @@ def convert_py_file_shape(py_filename, target_folder, remove_original=True):
     if not isdir(target_folder):
         mkdir(target_folder)
     name, _ = splitext(basename(py_filename))
-    module_ = imp.load_source(name, py_filename)
+
+    spec = importlib.util.spec_from_file_location(name, py_filename)
+    module_ = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module_)
+    # module_ = imp.load_source(name, py_filename)
 
     shape = module_.__shape__
     converted_filename = _conversion_filename(py_filename,
@@ -105,7 +110,11 @@ def convert_py_file_shapes(py_filename, target_folder, remove_original=True):
     if not isdir(target_folder):
         mkdir(target_folder)
     name, _ = splitext(basename(py_filename))
-    module_ = imp.load_source(name, py_filename)
+
+    spec = importlib.util.spec_from_file_location(name, py_filename)
+    module_ = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module_)
+    # module_ = imp.load_source(name, py_filename)
 
     shapes = module_.__shapes__
 
@@ -240,8 +249,12 @@ def convert_py_file_assembly(py_filename,
     # 3 - Run functions
     converted_basenames = []
 
-    module_ = imp.load_source(splitext(basename(py_filename))[0],
-                              py_filename_to_load)
+    spec = importlib.util.spec_from_file_location(splitext(basename(py_filename))[0], py_filename_to_load)
+    module_ = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module_)
+    # module_ = imp.load_source(splitext(basename(py_filename))[0],
+    #                           py_filename_to_load)
+
     assembly = getattr(module_, "__assembly__")
 
     for i, part in enumerate(assembly._parts):
@@ -300,8 +313,12 @@ def convert_py_file_assemblies(py_filename,
     # 3 - Run functions
     converted_basenames = []
 
-    module_ = imp.load_source(splitext(basename(py_filename))[0],
-                              py_filename_to_load)
+    spec = importlib.util.spec_from_file_location(splitext(basename(py_filename))[0], py_filename_to_load)
+    module_ = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module_)
+    # module_ = imp.load_source(splitext(basename(py_filename))[0],
+    #                           py_filename_to_load)
+
     assemblies = getattr(module_, "__assemblies__")
 
     for j, assembly in enumerate(assemblies):
