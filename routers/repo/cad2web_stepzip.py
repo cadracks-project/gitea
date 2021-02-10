@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# Copyright 2018-2019 Guillaume Florent
+# Copyright 2018-2021 Guillaume Florent
 
-# This source file is part of the present gitea fork (cad branch).
+# This source file is part of the cadracks-project gitea fork (cad branch).
 #
 # The cad2web_*.py files is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -46,7 +46,9 @@ logger = logging.getLogger(__name__)
 
 
 # TODO : how to display anchors?
-def convert_stepzip_file(stepzip_filename, target_folder, remove_original=True):
+def convert_stepzip_file(stepzip_filename: str,
+                         target_folder: str,
+                         remove_original: bool = True) -> None:
     r"""Convert an OsvCad Stepzip file for web display
 
     A Stepzip file contains a STEP geometry file and an anchors definition file
@@ -54,18 +56,11 @@ def convert_stepzip_file(stepzip_filename, target_folder, remove_original=True):
 
     Parameters
     ----------
-    stepzip_filename : str
-        Full path to the Stepzip file
-    target_folder : str
-        Full path to the target folder for the conversion
-    remove_original : bool
-        Should the input file be deleted after conversion?
+    stepzip_filename : Full path to the Stepzip file
+    target_folder : Full path to the target folder for the conversion
+    remove_original : Should the input file be deleted after conversion?
         It should be deleted on a web platform to save disk space, but, for
         testing, it might be useful not to delete it.
-
-    Returns
-    -------
-    Nothing, it is a procedure
 
     """
     if not isdir(target_folder):

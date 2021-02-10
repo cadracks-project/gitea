@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# Copyright 2018-2019 Guillaume Florent
+# Copyright 2018-2021 Guillaume Florent
 
-# This source file is part of the present gitea fork (cad branch).
+# This source file is part of the cadracks-project gitea fork (cad branch).
 #
 # The cad2web_*.py files is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -28,6 +28,7 @@ from os.path import basename, join, splitext
 from shutil import rmtree
 import zipfile
 import xml.etree.ElementTree
+from typing import List, Tuple
 
 from aocxchange.brep import BrepImporter
 
@@ -40,13 +41,12 @@ from cad2web_convert_shape import _convert_shape
 logger = logging.getLogger(__name__)
 
 
-def xml_root(xml_filepath):
+def xml_root(xml_filepath: str) -> xml.etree.ElementTree.Element:
     r"""Get the XML root element of an XML file
 
     Parameters
     ----------
-    xml_filepath : str
-        Full path to the XML file
+    xml_filepath : Full path to the XML file
 
     Returns
     -------
@@ -60,15 +60,14 @@ def xml_root(xml_filepath):
     return xml.etree.ElementTree.parse(xml_filepath).getroot()
 
 
-def list_objects(doc_root, container="Objects"):
-    r"""
+def list_objects(doc_root: xml.etree.ElementTree.Element,
+                 container: str = "Objects") -> List[xml.etree.ElementTree.Element]:
+    r"""List of object elements contained in doc root.
 
     Parameters
     ----------
-    doc_root : xml element
-        Root element of a Document.xml file
-    container : str
-        Name of the XML container for the objects
+    doc_root : Root element of a Document.xml file
+    container : Name of the XML container for the objects
 
     Returns
     -------
@@ -84,18 +83,16 @@ def list_objects(doc_root, container="Objects"):
     return objects
 
 
-def name_file(doc_root):
+def name_file(doc_root: xml.etree.ElementTree.Element) -> List[Tuple[str, str]]:
     r"""
 
     Parameters
     ----------
-    doc_root : xml element
-        Root element of the Document.xml file
+    doc_root : Root element of the Document.xml file
 
     Returns
     -------
-    list of tuples
-        List of (name, file) tuples from the Document.xml file
+    List of (name, file) tuples from the Document.xml file
 
     """
     name_file_tuples = []
@@ -113,20 +110,18 @@ def name_file(doc_root):
     return name_file_tuples
 
 
-def name_visibility(guidoc_root, name):
+def name_visibility(guidoc_root: xml.etree.ElementTree.Element,
+                    name: str) -> bool:
     r"""Using GuiDocument.xml, determine the visibility of an object
 
     Parameters
     ----------
-    guidoc_root : xml element
-        XML root element of the GuiDocument.xml file
-    name : str
-        Object name
+    guidoc_root : XML root element of the GuiDocument.xml file
+    name : Object name
 
     Returns
     -------
-    Bool
-        True if visible, False otherwise
+    True if visible, False otherwise
 
     """
     for vpd in guidoc_root.findall("ViewProviderData"):
@@ -142,20 +137,18 @@ def name_visibility(guidoc_root, name):
                             return False
 
 
-def name_file_visibility(name_file_tuples, guidoc_root):
+def name_file_visibility(name_file_tuples: List[Tuple[str, str]],
+                         guidoc_root: xml.etree.ElementTree.Element) -> List[Tuple[str, str, bool]]:
     r"""Build a list of name, file, visibility tuples
 
     Parameters
     ----------
-    name_file_tuples : list of tuples
-        List of (name, file) tuples
-    guidoc_root : xml element
-        XML root element of the GuiDocument.xml file
+    name_file_tuples : List of (name, file) tuples
+    guidoc_root : XML root element of the GuiDocument.xml file
 
     Returns
     -------
-    list of tuples
-        List of (name, file, visibility) tuples
+    List of (name, file, visibility) tuples
 
     """
     name_file_visibility_tuples = []
@@ -165,7 +158,7 @@ def name_file_visibility(name_file_tuples, guidoc_root):
     return name_file_visibility_tuples
 
 
-def extract_fcstd(fcstd_filename, target_folder):
+def extract_fcstd(fcstd_filename: str, target_folder: str) -> None:
     r"""Extract a FreeCAD file to a target folder"""
     fcstd_as_zip = zipfile.ZipFile(fcstd_filename)
 
@@ -173,14 +166,13 @@ def extract_fcstd(fcstd_filename, target_folder):
         fcstd_as_zip.extract(filename, target_folder)
 
 
-def name_file_visibility_from_unzipping_folder(folder_unzipping):
+def name_file_visibility_from_unzipping_folder(folder_unzipping: str) -> List[Tuple[str, str, bool]]:
     r"""Build a list of name, file, visibility tuples using a folder where the
     FreeCAD FCSTD file has been previously unzipped
 
     Parameters
     ----------
-    folder_unzipping : str
-        Path to the folder where the FCSTD file has been previously unzipped
+    folder_unzipping : Path to the folder where the FCSTD file has been previously unzipped
 
     """
     docroot = xml_root(join(folder_unzipping, "Document.xml"))
@@ -190,25 +182,18 @@ def name_file_visibility_from_unzipping_folder(folder_unzipping):
     return name_file_visibility(name_files_tuples, guidocroot)
 
 
-def convert_freecad_file(freecad_filename,
-                         target_folder,
-                         remove_original=True):
+def convert_freecad_file(freecad_filename: str,
+                         target_folder: str,
+                         remove_original: bool = True) -> None:
     r"""Convert a FreeCAD file (.fcstd) for web display
 
     Parameters
     ----------
-    freecad_filename : str
-        Full path to FreeCAD file
-    target_folder : str
-        Full path to the target folder for the conversion
-    remove_original : bool
-        Should the input file be deleted after conversion?
-        It should be deleted on a web platform to save disk space, but, for
-        testing, it might be useful not to delete it.
-
-    Returns
-    -------
-    Nothing, it is a procedure
+    freecad_filename : Full path to FreeCAD file
+    target_folder : Full path to the target folder for the conversion
+    remove_original : Should the input file be deleted after conversion?
+                      It should be deleted on a web platform to save disk space, but, for
+                      testing, it might be useful not to delete it.
 
     """
     logger.info("Starting FreeCAD conversion")
@@ -225,7 +210,7 @@ def convert_freecad_file(freecad_filename,
 
     for i, (n, f, v) in enumerate(name_file_visibility_tuples):
         if v is True:
-            brep_filename = "%s/%s" % (folder_unzipping, f)
+            brep_filename = f"{folder_unzipping}/{f}"
             converted_filename = _conversion_filename(brep_filename,
                                                       target_folder,
                                                       i)
@@ -237,7 +222,7 @@ def convert_freecad_file(freecad_filename,
             except (RuntimeError, AssertionError):
                 # An AssertionError is raised if one of the BREPs contained
                 # in the FCSTD file contains a NULL shape
-                logger.error("RuntimeError for %s" % brep_filename)
+                logger.error(f"RuntimeError for {brep_filename}")
 
     x_min = min([extrema[0] for extrema in extremas])
     y_min = min([extrema[1] for extrema in extremas])

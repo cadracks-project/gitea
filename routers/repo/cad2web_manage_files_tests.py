@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# Copyright 2018-2019 Guillaume Florent
+# Copyright 2018-2021 Guillaume Florent
 
-# This source file is part of the present gitea fork (cad branch).
+# This source file is part of the cadracks-project gitea fork (cad branch).
 #
 # The cad2web_*.py files is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -53,7 +53,7 @@ def test_download_file_wrong_url():
     with pytest.raises(requests.exceptions.HTTPError):
         _download_file(TEST_FILE_URL, TEST_FILE_NAME)
 
-    # Make sure no file is create
+    # Make sure no file is created
     assert not isfile(TEST_FILE_NAME)
 
 

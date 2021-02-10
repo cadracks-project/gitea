@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# Copyright 2018-2019 Guillaume Florent
+# Copyright 2018-2021 Guillaume Florent
 
-# This source file is part of the present gitea fork (cad branch).
+# This source file is part of the cadracks-project gitea fork (cad branch).
 #
 # The cad2web_*.py files is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -25,6 +25,7 @@ from shutil import rmtree
 import time
 import uuid
 from os.path import join, dirname
+from typing import Callable
 
 from cad2web_freecad import convert_freecad_file
 from cad2web_neutral_formats import convert_step_file, convert_iges_file, \
@@ -32,19 +33,19 @@ from cad2web_neutral_formats import convert_step_file, convert_iges_file, \
 from cad2web_py import convert_py_file_part
 
 
-def convert_timed(path, func):
-    r"""Test name file visibility tuples from known FCSTD file"""
+def convert_timed(path: str, func: Callable) -> None:
+    r"""Timed conversion and info message to stdout"""
     path = join(dirname(__file__), path)
-    target_folder = join(dirname(__file__), "tests/out/%s" % str(uuid.uuid4()))
+    target_folder = join(dirname(__file__), f"tests/out/{uuid.uuid4()}")
     t0 = time.time()
     func(path, target_folder, remove_original=False)
     t1 = time.time()
-    print("Conversion took %.3f s for %s" % ((t1 - t0), path))
+    print(f"Conversion took {(t1 - t0):.3f} s for {path}")
     rmtree(target_folder, ignore_errors=True)
 
 
 def main():
-
+    r"""Run the benchmark"""
     print("**** BREP ****")
     convert_timed("tests/in/brep/cylinder_head.brep", convert_brep_file)
     convert_timed("tests/in/brep/Motor-c.brep", convert_brep_file)

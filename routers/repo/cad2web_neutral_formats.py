@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# Copyright 2018-2019 Guillaume Florent
+# Copyright 2018-2021 Guillaume Florent
 
-# This source file is part of the present gitea fork (cad branch).
+# This source file is part of the cadracks-project gitea fork (cad branch).
 #
 # The cad2web_*.py files is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -37,23 +37,18 @@ from cad2web_manage_files import _conversion_filename, _descriptor_filename, \
 from cad2web_convert_shape import _convert_shape
 
 
-def convert_step_file(step_filename, target_folder, remove_original=True):
+def convert_step_file(step_filename: str,
+                      target_folder: str,
+                      remove_original: bool = True) -> None:
     r"""Convert a STEP file (.step, .stp) for web display
 
     Parameters
     ----------
-    step_filename : str
-        Full path to the STEP file
-    target_folder : str
-        Full path to the target folder for the conversion
-    remove_original : bool
-        Should the input file be deleted after conversion?
+    step_filename : Full path to the STEP file
+    target_folder : Full path to the target folder for the conversion
+    remove_original : Should the input file be deleted after conversion?
         It should be deleted on a web platform to save disk space, but, for
         testing, it might be useful not to delete it.
-
-    Returns
-    -------
-    Nothing, it is a procedure
 
     """
     if not isdir(target_folder):
@@ -77,23 +72,18 @@ def convert_step_file(step_filename, target_folder, remove_original=True):
         remove(step_filename)
 
 
-def convert_iges_file(iges_filename, target_folder, remove_original=True):
+def convert_iges_file(iges_filename: str,
+                      target_folder: str,
+                      remove_original: bool = True) -> None:
     r"""Convert an IGES file (.iges, .igs) for web display
 
     Parameters
     ----------
-    iges_filename : str
-        Full path to IGES file
-    target_folder : str
-        Full path to the target folder for the conversion
-    remove_original : bool
-        Should the input file be deleted after conversion?
+    iges_filename : Full path to IGES file
+    target_folder : Full path to the target folder for the conversion
+    remove_original : Should the input file be deleted after conversion?
         It should be deleted on a web platform to save disk space, but, for
         testing, it might be useful not to delete it.
-
-    Returns
-    -------
-    Nothing, it is a procedure
 
     """
     if not isdir(target_folder):
@@ -117,23 +107,18 @@ def convert_iges_file(iges_filename, target_folder, remove_original=True):
         remove(iges_filename)
 
 
-def convert_brep_file(brep_filename, target_folder, remove_original=True):
+def convert_brep_file(brep_filename: str,
+                      target_folder: str,
+                      remove_original: bool = True) -> None:
     r"""Convert a BREP file (.brep, .brp) for web display
 
     Parameters
     ----------
-    brep_filename : str
-        Full path to the BREP file
-    target_folder : str
-        Full path to the target folder for the conversion
-    remove_original : bool
-        Should the input file be deleted after conversion?
+    brep_filename : Full path to the BREP file
+    target_folder : Full path to the target folder for the conversion
+    remove_original : Should the input file be deleted after conversion?
         It should be deleted on a web platform to save disk space, but, for
         testing, it might be useful not to delete it.
-
-    Returns
-    -------
-    Nothing, it is a procedure
 
     """
     if not isdir(target_folder):
@@ -153,23 +138,18 @@ def convert_brep_file(brep_filename, target_folder, remove_original=True):
         remove(brep_filename)
 
 
-def convert_stl_file(stl_filename, target_folder, remove_original=True):
+def convert_stl_file(stl_filename: str,
+                     target_folder: str,
+                     remove_original: bool = True) -> None:
     r"""Convert a STL file (.stl) for web display
 
     Parameters
     ----------
-    stl_filename : str
-        Full path to the STL file
-    target_folder : str
-        Full path to the target folder for the conversion
-    remove_original : bool
-        Should the input file be deleted after conversion?
+    stl_filename : Full path to the STL file
+    target_folder : Full path to the target folder for the conversion
+    remove_original : Should the input file be deleted after conversion?
         It should be deleted on a web platform to save disk space, but, for
         testing, it might be useful not to delete it.
-
-    Returns
-    -------
-    Nothing, it is a procedure
 
     """
     if not isdir(target_folder):

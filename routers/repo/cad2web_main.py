@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# Copyright 2018-2019 Guillaume Florent
+# Copyright 2018-2021 Guillaume Florent
 
-# This source file is part of the present gitea fork (cad branch).
+# This source file is part of the cadracks-project gitea fork (cad branch).
 #
 # The cad2web_*.py files is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -49,7 +49,7 @@ logger = logging.getLogger(__name__)
 
 def main():
     r"""Procedure that handles the conversion from a CAD file to a format
-    usable by a 3D web viewer
+    usable by a 3D web viewer.
 
     The parameters are command line arguments retrieved in this procedure
 
@@ -68,22 +68,22 @@ def main():
     cad_file_raw_url = sys.argv[1]
     converted_files_folder = sys.argv[2]  # Root destination for converted files
 
-    logger.debug("sys.argv[1]       (CAD file raw url) = %s" % cad_file_raw_url)
-    logger.debug("sys.argv[2] (Converted files folder) = %s" % converted_files_folder)
+    logger.debug(f"sys.argv[1]       (CAD file raw url) = {cad_file_raw_url}")
+    logger.debug(f"sys.argv[2] (Converted files folder) = {converted_files_folder}")
 
     branch = cad_file_raw_url.split("/")[5]
     user = cad_file_raw_url.split("/")[1]
     project = cad_file_raw_url.split("/")[2]
     path_from_project_root = "/".join(cad_file_raw_url.split("/")[6:])
 
-    clone_url = "%s/%s/%s" % (GITEA_URL, user, project)
+    clone_url = f"{GITEA_URL}/{user}/{project}"
 
-    logger.info("Branch is %s" % branch)
-    logger.info("User is %s" % user)
-    logger.info("Project is %s" % project)
-    logger.info("Path from project root is %s" % path_from_project_root)
+    logger.info(f"Branch is {branch}")
+    logger.info(f"User is {user}")
+    logger.info(f"Project is {project}")
+    logger.info(f"Path from project root is {path_from_project_root}")
 
-    cad_file_raw_url_full = "%s%s" % (GITEA_URL, cad_file_raw_url)
+    cad_file_raw_url_full = f"{GITEA_URL}{cad_file_raw_url}"
 
     cad_file_filename = join(converted_files_folder, basename(cad_file_raw_url))
 
@@ -118,13 +118,13 @@ def main():
                             project,
                             path_from_project_root)
         t1 = time.time()
-        logger.info("The whole Python call took %f" % (t1 - t0))
+        logger.info(f"The whole Python call took {(t1 - t0)}")
         sys.exit(0)
     except KeyError:
-        msg = "Unknown CAD cad_file_extension : %s" % cad_file_extension
+        msg = f"Unknown CAD cad_file_extension : {cad_file_extension}"
         logger.error(msg)
         t1 = time.time()
-        logger.info("The whole Python call took %f" % (t1 - t0))
+        logger.info(f"The whole Python call took {(t1 - t0)}")
         raise ValueError(msg)
 
 

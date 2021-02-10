@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# Copyright 2018-2019 Guillaume Florent
+# Copyright 2018-2021 Guillaume Florent
 
-# This source file is part of the present gitea fork (cad branch).
+# This source file is part of the cadracks-project gitea fork (cad branch).
 #
 # The cad2web_*.py files is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -26,7 +26,9 @@ import json
 import logging
 from os.path import isfile
 import uuid
+from typing import Tuple, Iterable, Union
 
+from OCC.Core.TopoDS import TopoDS_Shape
 from OCC.Core.Visualization import Tesselator
 
 # from aocxchange.stl import StlExporter
@@ -42,19 +44,15 @@ from cad2web_topology import is_edge, is_wire, discretize_edge, \
 logger = logging.getLogger(__name__)
 
 
-def _convert_shape(shape, filename):
+def _convert_shape(shape: TopoDS_Shape, filename: str) -> None:
     r"""Convert a shape to a format usable for web display.
 
     The currently used format for web display is JSON
 
     Parameters
     ----------
-    shape : OCC shape
+    shape : OCC.Core.TopoDS.TopoDS_Shape
     filename : full path to the target file name
-
-    Returns
-    -------
-    Nothing, it is a procedure, not a function
 
     """
     logger.debug("Call to _convert_shape()")
@@ -67,9 +65,10 @@ def _convert_shape(shape, filename):
     logger.debug("End of call to _convert_shape()")
 
 
-def color_to_hex(rgb_color):
-    """ Takes a tuple with 3 floats between 0 and 1. Useful to convert occ
-    colors to web color code
+def color_to_hex(rgb_color: Tuple[float, float, float]) -> str:
+    """ Takes a tuple with 3 floats between 0 and 1.
+
+    Useful to convert OCC colors to web color code
 
     Parameters
     ----------
@@ -90,7 +89,8 @@ def color_to_hex(rgb_color):
     return "0x%.02x%.02x%.02x" % (rh, gh, bh)
 
 
-def export_edgedata_to_json(edge_hash, point_set):
+def export_edgedata_to_json(edge_hash: str,
+                            point_set: Iterable[Tuple[float, float, float]]) -> str:
     """ Export a set of points to a LineSegment buffergeometry
 
     Parameters
@@ -100,7 +100,7 @@ def export_edgedata_to_json(edge_hash, point_set):
 
     Returns
     -------
-    str : a JSON string
+    A JSON string
 
     """
     # first build the array of point coordinates
@@ -127,38 +127,39 @@ def export_edgedata_to_json(edge_hash, point_set):
 
 # TODO: move control of color and appearance from HTML template to JSON
 # TODO : separate the conversion from the IO
-def _shape_to_json(shape,
-                   filename,
-                   export_edges=False,
-                   color=(0.65, 0.65, 0.65),
-                   specular_color=(1, 1, 1),
-                   shininess=0.9,
-                   transparency=0.,
-                   line_color=(0, 0., 0.),
-                   line_width=2.,
-                   mesh_quality=1.):
+# TODO : why can the return value be either a bool or None (return value not even used in caller)
+# TODO : if elif (no else ????)
+def _shape_to_json(shape: TopoDS_Shape,
+                   filename: str,
+                   export_edges: bool = False,
+                   color: Tuple[float, float, float] = (0.65, 0.65, 0.65),
+                   specular_color: Tuple[float, float, float] = (1, 1, 1),
+                   shininess: float = 0.9,
+                   transparency: float = 0.,
+                   line_color: Tuple[float, float, float] = (0, 0., 0.),
+                   line_width: float = 2.,
+                   mesh_quality: float = 1.) -> Union[bool, None]:
     r"""Converts a shape to a JSON file representation
 
     Parameters
     ----------
-    shape : OCC shape
-    filename : str
-        Full path to the file where the conversion is written
-    export_edges : bool
-    color
-    specular_color
-    shininess
-    transparency
-    line_color
-    line_width
-    mesh_quality
+    shape : The OCC shape to convert
+    filename : Full path to the file where the conversion is written
+    export_edges : Should the edges be exported?
+    color : RGB color (components from 0 to 1)
+    specular_color : RGB color (components from 0 to 1)
+    shininess : shininess from 0 to 1
+    transparency : transparency specified from 0 to 1
+    line_color : RGB color (components from 0 to 1)
+    line_width : line width (unit ?)
+    mesh_quality : mesh quality indicator
 
     Returns
     -------
-    Nothing, it is a procedure, not a function
+    A boolean or None -> SOLVE THIS !
 
     """
-    logger.info("Starting the conversion of a shape to JSON(%s)" % filename)
+    logger.info(f"Starting the conversion of a shape to JSON({filename})")
     _3js_shapes = {}
     _3js_edges = {}
 

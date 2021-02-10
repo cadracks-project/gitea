@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# Copyright 2018-2019 Guillaume Florent
+# Copyright 2018-2021 Guillaume Florent
 
-# This source file is part of the present gitea fork (cad branch).
+# This source file is part of the cadracks-project gitea fork (cad branch).
 #
 # The cad2web_*.py files is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -45,23 +45,18 @@ from cad2web_convert_shape import _convert_shape
 logger = logging.getLogger(__name__)
 
 
-def convert_py_file_shape(py_filename, target_folder, remove_original=True):
+def convert_py_file_shape(py_filename: str,
+                          target_folder: str,
+                          remove_original: bool = True) -> None:
     r"""Convert a PythonOCC script that contains a shape for web display
 
     Parameters
     ----------
-    py_filename : str
-        Full path to the Python file
-    target_folder : str
-        Full path to the target folder for the conversion
-    remove_original : bool
-        Should the input file be deleted after conversion?
+    py_filename : Full path to the Python file
+    target_folder : Full path to the target folder for the conversion
+    remove_original : Should the input file be deleted after conversion?
         It should be deleted on a web platform to save disk space, but, for
         testing, it might be useful not to delete it.
-
-    Returns
-    -------
-    Nothing, it is a procedure
 
     """
     if not isdir(target_folder):
@@ -88,23 +83,18 @@ def convert_py_file_shape(py_filename, target_folder, remove_original=True):
         remove(py_filename)
 
 
-def convert_py_file_shapes(py_filename, target_folder, remove_original=True):
+def convert_py_file_shapes(py_filename: str,
+                           target_folder: str,
+                           remove_original: bool = True) -> None:
     r"""Convert a PythonOCC script that contains a list of shapes for web display
 
     Parameters
     ----------
-    py_filename : str
-        Full path to the Python file
-    target_folder : str
-        Full path to the target folder for the conversion
-    remove_original : bool
-        Should the input file be deleted after conversion?
+    py_filename : Full path to the Python file
+    target_folder : Full path to the target folder for the conversion
+    remove_original : Should the input file be deleted after conversion?
         It should be deleted on a web platform to save disk space, but, for
         testing, it might be useful not to delete it.
-
-    Returns
-    -------
-    Nothing, it is a procedure
 
     """
     if not isdir(target_folder):
@@ -197,24 +187,25 @@ def convert_py_file_shapes(py_filename, target_folder, remove_original=True):
 #         remove(py_filename)
 
 
-def convert_py_file_assembly(py_filename,
-                             target_folder,
-                             clone_url,
-                             branch,
-                             project,
-                             path_from_project_root,
-                             remove_original=True):
+# TODO : remove_original is not used
+def convert_py_file_assembly(py_filename: str,
+                             target_folder: str,
+                             clone_url: str,
+                             branch: str,
+                             project: str,
+                             path_from_project_root: str,
+                             remove_original: bool = True) -> None:
     r"""Convert a Python script that defines an assembly
 
     Parameters
     ----------
-    py_filename
-    target_folder
+    py_filename : python file name
+    target_folder :
     clone_url
-    branch
-
-    Returns
-    -------
+    branch : git repo branch
+    project : git repo
+    path_from_project_root : relative path to py file from project root
+    remove_original : NOT USED, SOLVE THAT
 
     """
     if not isdir(target_folder):
@@ -222,29 +213,27 @@ def convert_py_file_assembly(py_filename,
 
     py_filename_to_load = join(target_folder, project, path_from_project_root)
 
-    logger.info("py_filename_to_load = %s" % py_filename_to_load)
+    logger.info(f"py_filename_to_load = {py_filename_to_load}")
 
     logger.info("Dealing with a Python file that is supposed to "
                 "define an assembly")
-    logger.info("py_filename = %s" % py_filename)
-    logger.info("target_folder = %s" % target_folder)
-    logger.info("clone_url = %s" % clone_url)
-    logger.info("branch = %s" % branch)
+    logger.info(f"py_filename = {py_filename}")
+    logger.info(f"target_folder = {target_folder}")
+    logger.info(f"clone_url = {clone_url}")
+    logger.info(f"branch = {branch}")
 
     # 0 - Git clone
-    logger.info("Git cloning %s into %s" % (clone_url, target_folder))
+    logger.info(f"Git cloning {clone_url} into {target_folder}")
 
     # from subprocess import call
     # call(["cd", target_folder, "&&", "git", "clone", clone_url])
-    system("cd %s && git clone %s" % (target_folder, clone_url))
+    system(f"cd {target_folder} && git clone {clone_url}")
 
     project = clone_url.split("/")[-1]
 
     # 1 - Git checkout the right branch/commit
-    logger.info("Git checkout %s of %s" % (branch, project))
-    system("cd %s/%s && git checkout %s" % (target_folder,
-                                            project,
-                                            branch))
+    logger.info(f"Git checkout {branch} of {project}")
+    system(f"cd {target_folder}/{project} && git checkout {branch}")
 
     # 3 - Run functions
     converted_basenames = []
@@ -274,46 +263,59 @@ def convert_py_file_assembly(py_filename,
     # TODO : remove folder created by git clone or the next clone will fail
 
 
-def convert_py_file_assemblies(py_filename,
-                               target_folder,
-                               clone_url,
-                               branch,
-                               project,
-                               path_from_project_root,
-                               remove_original=True):
+# TODO : remove_original is not used
+def convert_py_file_assemblies(py_filename: str,
+                               target_folder: str,
+                               clone_url: str,
+                               branch: str,
+                               project: str,
+                               path_from_project_root: str,
+                               remove_original: bool = True) -> None:
+    r"""Convert a Python file that defines more than 1 assemblies
+
+    Parameters
+    ----------
+    py_filename : python file name
+    target_folder :
+    clone_url
+    branch : git repo branch
+    project : git repo
+    path_from_project_root : relative path to py file from project root
+    remove_original : NOT USED, SOLVE THAT
+
+    """
     if not isdir(target_folder):
         mkdir(target_folder)
 
     py_filename_to_load = join(target_folder, project, path_from_project_root)
 
-    logger.info("py_filename_to_load = %s" % py_filename_to_load)
+    logger.info(f"py_filename_to_load = {py_filename_to_load}")
 
     logger.info("Dealing with a Python file that is supposed to "
                 "define an assembly")
-    logger.info("py_filename = %s" % py_filename)
-    logger.info("target_folder = %s" % target_folder)
-    logger.info("clone_url = %s" % clone_url)
-    logger.info("branch = %s" % branch)
+    logger.info(f"py_filename = {py_filename}")
+    logger.info(f"target_folder = {target_folder}")
+    logger.info(f"clone_url = {clone_url}")
+    logger.info(f"branch = {branch}")
 
     # 0 - Git clone
-    logger.info("Git cloning %s into %s" % (clone_url, target_folder))
+    logger.info(f"Git cloning {clone_url} into {target_folder}")
 
     # from subprocess import call
     # call(["cd", target_folder, "&&", "git", "clone", clone_url])
-    system("cd %s && git clone %s" % (target_folder, clone_url))
+    system(f"cd {target_folder} && git clone {clone_url}")
 
     project = clone_url.split("/")[-1]
 
     # 1 - Git checkout the right branch/commit
-    logger.info("Git checkout %s of %s" % (branch, project))
-    system("cd %s/%s && git checkout %s" % (target_folder,
-                                            project,
-                                            branch))
+    logger.info(f"Git checkout {branch} of {project}")
+    system(f"cd {target_folder}/{project} && git checkout {branch}")
 
     # 3 - Run functions
     converted_basenames = []
 
-    spec = importlib.util.spec_from_file_location(splitext(basename(py_filename))[0], py_filename_to_load)
+    spec = importlib.util.spec_from_file_location(splitext(basename(py_filename))[0],
+                                                  py_filename_to_load)
     module_ = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module_)
     # module_ = imp.load_source(splitext(basename(py_filename))[0],
@@ -339,27 +341,26 @@ def convert_py_file_assemblies(py_filename,
     # TODO : remove folder created by git clone or the next clone will fail
 
 
-def convert_py_file(py_filename,
-                    target_folder,
-                    clone_url,
-                    branch,
-                    project,
-                    path_from_project_root,
-                    remove_original=True):
+def convert_py_file(py_filename: str,
+                    target_folder: str,
+                    clone_url: str,
+                    branch: str,
+                    project: str,
+                    path_from_project_root: str,
+                    remove_original: bool = True) -> None:
     r"""Convert an OsvCad Python file for web display
 
     The Python file can contain the definition of a part or of an assembly
 
     Parameters
     ----------
-    py_filename : str
-        Full path to the Python file
-    target_folder : str
-        Full path to the target folder for the conversion
-
-    Returns
-    -------
-    Nothing, it is a procedure
+    py_filename : Full path to the Python file
+    target_folder : Full path to the target folder for the conversion
+    clone_url
+    branch : git repo branch name
+    project : git repo name
+    path_from_project_root : relative path to the Py file from project root
+    remove_original : Should the original file be removed?
 
     """
     #  Determine which kind of Python file we are dealing with
